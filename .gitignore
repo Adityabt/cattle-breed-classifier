@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+
+dataset/
+dataset_raw/
+experiments/
+
+outputs/
+
+*.pth
+*.png
+
+.DS_Store

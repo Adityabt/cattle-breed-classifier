@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+  <head>
+    <title>About - CattleAI</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+
+    <!-- NAVBAR -->
+    <div class="navbar">
+      <div class="nav-content">
+        <div class="logo">🐄 CattleAI</div>
+
+        <div class="nav-links">
+          <span onclick="location.href='/'">Home</span>
+          <span onclick="location.href='/'">Predict</span>
+          <span onclick="location.href='/about'">About</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-2">
+      <h1>About This Project</h1>
+
+      <p>
+        This AI-powered system identifies cattle breeds using deep learning.
+        It is built on a ResNet50 backbone enhanced with Attention-Guided
+        Part Network (AGPN) and Multi-View Feature Fusion (MVFF).
+      </p>
+
+      <p>
+        The model focuses on key visual features such as coat patterns,
+        facial structure, and body shape to classify breeds accurately.
+      </p>
+
+      <p>
+        Along with predictions, the system provides confidence scores
+        and Grad-CAM attention maps to explain model decisions.
+      </p>
+
+      <p>
+        This project demonstrates the application of computer vision
+        in agriculture and livestock management.
+      </p>
+
+    </div>
+
+  </body>
+</html>
