@@ -13,6 +13,7 @@ from werkzeug.utils import secure_filename
 from gradcam import GradCAM
 import cv2
 import numpy as np
+import time
 
 app = Flask(__name__)
 app.secret_key = "change_this_to_a_random_secret_key"
@@ -28,7 +29,11 @@ from models.agpn_resnet import AGPNResNet50
 model = AGPNResNet50(num_classes=5)
 
 model_path = os.path.join(BASE_DIR, "outputs/agpn_model.pth")
-model.load_state_dict(torch.load(model_path, map_location=device))
+if os.path.exists(model_path):
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    print(f"Loaded model from {model_path}")
+else:
+    print(f"WARNING: Model file not found at {model_path}. Using untrained weights.")
 
 model = model.to(device)
 model.eval()
@@ -140,6 +145,7 @@ def predict():
     # ------------------------
     # MVFF Prediction
     # ------------------------
+    start_time = time.time()
     with torch.no_grad():
         outputs = model(images)
         outputs = torch.mean(outputs, dim=0, keepdim=True)
@@ -173,6 +179,12 @@ def predict():
             "confidence": confidence,
             "color": color
         })
+        
+    inference_time = round(time.time() - start_time, 2)
+    
+    # Get all probabilities for chart
+    all_probs = probabilities.tolist()
+    all_probs = [round(p * 100, 2) for p in all_probs]
 
     # ------------------------
     # Grad-CAM
@@ -206,10 +218,19 @@ def predict():
     # ------------------------
     # Store result
     # ------------------------
+    
+    # Image properties
+    img_width, img_height = pil_image.size
+    
     session["latest_result"] = {
         "image_path": f"uploads/{saved_filenames[0]}",
         "heatmap_path": f"heatmaps/{saved_filenames[0]}",
         "predictions": predictions,
+        "all_probs": all_probs,
+        "class_names": class_names,
+        "inference_time": inference_time,
+        "img_width": img_width,
+        "img_height": img_height,
         "history": prediction_history,
         "num_images": len(saved_filenames)
     }
@@ -230,6 +251,11 @@ def result():
         image_path=data["image_path"],
         heatmap_path=data["heatmap_path"],
         predictions=data["predictions"],
+        all_probs=data["all_probs"],
+        class_names=data["class_names"],
+        inference_time=data["inference_time"],
+        img_width=data["img_width"],
+        img_height=data["img_height"],
         history=data["history"],
         num_images=data["num_images"]
     )

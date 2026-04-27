@@ -1,11 +1,10 @@
 <!doctype html>
 <html>
   <head>
-    <title>Prediction Result</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
+    <title>Prediction Dashboard | CattleAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
 
   <body>
@@ -13,135 +12,108 @@
     <!-- 🔥 NAVBAR -->
     <div class="navbar">
       <div class="nav-content">
-        <div class="logo">🐄 CattleAI</div>
-
+        <div class="logo">🐄 CattleAI Dashboard</div>
         <div class="nav-links">
-  <span onclick="location.href='/'">Home</span>
-  <span onclick="location.href='/analytics'">Analytics</span>
-  <span onclick="location.href='/insights'">Insights</span>
-  <span onclick="location.href='/history'">History</span>
-</div>
+          <span onclick="location.href='/'">New Prediction</span>
+          <span onclick="location.href='/about'">About Model</span>
+        </div>
       </div>
     </div>
 
-    <div class="container-2">
-
-      <!-- 🔍 PREDICTION SECTION -->
-      <div id="prediction">
-        <h1>Prediction Result</h1>
-
-        <img
-          src="{{ url_for('static', filename=image_path) }}"
-          class="preview-img"
-        />
+    <div class="dashboard-container">
+      
+      <!-- HEADER -->
+      <div class="dashboard-header">
+        <h1>Analysis Results</h1>
+        <p class="subtitle">Detailed breakdown of the model's prediction</p>
       </div>
 
-      <!-- 🔥 ATTENTION SECTION -->
-      <div id="attention">
-        <br />
-        <button id="toggle-heatmap" class="another-image">
-          Show Attention Map
-        </button>
-
-        <div id="heatmap-section" style="display: none; margin-top: 20px">
-          <h2>Model Attention Visualization</h2>
-          <img
-            src="{{ url_for('static', filename=heatmap_path) }}"
-            class="preview-img"
-          />
-        </div>
-      </div>
-
-      <!-- 📊 CONFIDENCE SECTION -->
-      <div id="confidence">
-        <h2>Top Predictions</h2>
-
-        {% for p in predictions %}
-        <div class="prediction-card {{ p.color }}">
-          <h3>{{ p.breed }}</h3>
-
-          <div class="bar-container">
-            <div class="bar-fill" data-width="{{ p.confidence }}"></div>
+      <div class="dashboard-grid">
+        
+        <!-- MAIN IMAGE & ATTENTION MAP PANEL -->
+        <div class="panel image-panel">
+          <div class="panel-header">
+            <h2>Visual Analysis</h2>
+            <button id="toggle-heatmap" class="btn-small">Show Attention Map</button>
           </div>
-
-          <p class="confidence-text">{{ p.confidence }}%</p>
+          
+          <div class="image-wrapper" id="image-wrapper">
+            <img src="{{ url_for('static', filename=image_path) }}" id="main-image" class="full-img" alt="Uploaded Cattle" />
+            <img src="{{ url_for('static', filename=heatmap_path) }}" id="heatmap-image" class="full-img overlay-img" alt="Attention Map" />
+          </div>
         </div>
-        {% endfor %}
-      </div>
 
-      <!-- 🧠 INSIGHTS SECTION -->
-      <div id="insights">
-        <h2>Model Insights</h2>
-        <p>High confidence predictions indicate strong feature extraction.</p>
-        <p>Some overlap observed between visually similar breeds.</p>
-      </div>
-
-      <!-- 📜 HISTORY SECTION -->
-      {% if history %}
-      <div id="history">
-        <h2>Recent Predictions</h2>
-
-        {% for item in history %}
-        <div class="history-card">
-          <p>{{ item.breed }} - {{ item.confidence }}%</p>
+        <!-- TOP PREDICTION PANEL -->
+        <div class="panel top-prediction-panel {{ predictions[0].color }}-glow">
+          <h2>Top Match</h2>
+          <div class="primary-result">
+            <h1 class="top-breed">{{ predictions[0].breed }}</h1>
+            <div class="confidence-circle">
+              <span>{{ predictions[0].confidence }}%</span>
+            </div>
+          </div>
+          <div class="insights-box">
+            <h3>🤖 Model Insight</h3>
+            <p id="dynamic-insight"></p>
+          </div>
         </div>
-        {% endfor %}
+
+        <!-- STATS PANEL -->
+        <div class="panel stats-panel">
+          <h2>Model Statistics</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-icon">⏱️</span>
+              <span class="stat-label">Inference Time</span>
+              <span class="stat-value">{{ inference_time }}s</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">📐</span>
+              <span class="stat-label">Image Size</span>
+              <span class="stat-value">{{ img_width }}x{{ img_height }}</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">🧠</span>
+              <span class="stat-label">Architecture</span>
+              <span class="stat-value">AGPN-ResNet50</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">📸</span>
+              <span class="stat-label">Batch Size</span>
+              <span class="stat-value">{{ num_images }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DISTRIBUTION CHART PANEL -->
+        <div class="panel chart-panel">
+          <h2>Probability Distribution</h2>
+          <div class="chart-container">
+            <canvas id="probabilityChart"></canvas>
+          </div>
+        </div>
+
+      </div> <!-- End Grid -->
+
+      <div class="dashboard-footer">
+        <a href="/">
+          <button class="btn-primary">Analyze Another Image</button>
+        </a>
       </div>
-      {% endif %}
-
-      <!-- 📈 ANALYTICS SECTION -->
-      <div id="analytics">
-        <h2>Analytics</h2>
-        <p>Performance charts and graphs will be displayed here.</p>
-      </div>
-
-      <br />
-
-      <a href="/">
-        <button class="another-image">Try Another Image</button>
-      </a>
 
     </div>
 
-    <!-- 🔥 SCRIPTS -->
-    <script>
-      // Smooth scroll
-      function scrollToSection(id) {
-        const section = document.getElementById(id);
-        if (section) {
-          section.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
-        }
+    <!-- Pass backend data to JS safely -->
+    <script id="model-data" type="application/json">
+      {
+        "all_probs": {{ all_probs | tojson }},
+        "class_names": {{ class_names | tojson }},
+        "top_confidence": {{ predictions[0].confidence }}
       }
-
-      // Animated bars
-      window.addEventListener("load", function () {
-        const bars = document.querySelectorAll(".bar-fill");
-
-        bars.forEach((bar) => {
-          const width = bar.getAttribute("data-width");
-          setTimeout(() => {
-            bar.style.width = width + "%";
-          }, 200);
-        });
-      });
-
-      // Heatmap toggle
-      const toggleBtn = document.getElementById("toggle-heatmap");
-      const heatmapSection = document.getElementById("heatmap-section");
-
-      toggleBtn.addEventListener("click", function () {
-        if (heatmapSection.style.display === "none") {
-          heatmapSection.style.display = "block";
-          toggleBtn.textContent = "Hide Attention Map";
-        } else {
-          heatmapSection.style.display = "none";
-          toggleBtn.textContent = "Show Attention Map";
-        }
-      });
     </script>
+
+    <!-- ✅ SCRIPT -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 
   </body>
 </html>

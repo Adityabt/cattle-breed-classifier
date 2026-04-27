@@ -1,82 +1,73 @@
 <!doctype html>
 <html>
   <head>
-    <title>Cattle Breed Classifier</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
+    <title>Cattle Breed Classifier | CattleAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   </head>
 
-  <body>
+  <body class="center-layout">
 
     <!-- 🔥 NAVBAR -->
     <div class="navbar">
       <div class="nav-content">
         <div class="logo">🐄 CattleAI</div>
-
         <div class="nav-links">
-          <span onclick="location.href='/'">Home</span>
-          <span onclick="document.getElementById('imageInput').click()">Predict</span>
+          <span class="active">Home</span>
           <span onclick="location.href='/about'">About</span>
         </div>
       </div>
     </div>
 
-    <!-- 🟢 MAIN CONTAINER -->
-    <div class="container-1">
-      <h1>Cattle Breed Classifier</h1>
-      <p class="subtitle">
-        AI-based Breed Identification using ResNet50 + AGPN + MVFF
-      </p>
+    <!-- 🟢 MAIN CENTERED CONTAINER -->
+    <main class="main-content">
+      <div class="hero-section">
+        <h1 class="hero-title">Precision Breed Identification</h1>
+        <p class="hero-subtitle">
+          Upload an image to leverage state-of-the-art Deep Learning (AGPN-ResNet50) for highly accurate and interpretable cattle breed classification.
+        </p>
+      </div>
 
-      <form action="/predict" method="post" enctype="multipart/form-data">
-        <label class="upload-box">
-          <input
-            type="file"
-            name="images"
-            id="imageInput"
-            accept="image/*"
-            multiple
-            required
-          />
-          <span>Click to Upload Cattle Images</span>
-        </label>
+      <div class="upload-container">
+        <form action="/predict" method="post" enctype="multipart/form-data" id="upload-form">
+          <label class="upload-box" id="drop-zone">
+            <div class="upload-icon">📸</div>
+            <h2>Drag & Drop Image</h2>
+            <p>or click to browse files</p>
+            <input
+              type="file"
+              name="images"
+              id="imageInput"
+              accept="image/png, image/jpeg, image/jpg"
+              multiple
+              required
+            />
+          </label>
 
-        <!-- 🔥 IMAGE PREVIEW -->
-        <div id="preview-container" style="display: none; margin-top: 20px">
-          <p>Selected Images:</p>
-          <div id="preview-grid"></div>
-        </div>
+          <!-- 🔥 IMAGE PREVIEW -->
+          <div id="preview-container" class="hidden">
+            <div id="preview-grid"></div>
+          </div>
 
-        <br />
-        <button type="submit" id="predict-btn">Predict Breed</button>
-      </form>
-    </div>
+          <div class="action-container">
+            <button type="submit" id="predict-btn" class="btn-primary" disabled>
+              <span>Analyze Image</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
 
     <!-- 🔥 LOADING OVERLAY -->
-    <div id="loading-overlay">
+    <div id="loading-overlay" class="hidden">
       <div class="loader-box">
         <div class="spinner"></div>
-        <p>Analyzing Image(s)...</p>
+        <h2>Analyzing Image...</h2>
+        <p>Running AGPN-ResNet50 Inference</p>
       </div>
     </div>
 
     <!-- ✅ SCRIPT -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-
-    <!-- 🔥 ABOUT SCROLL SCRIPT -->
-    <script>
-      function scrollToAbout() {
-        const section = document.getElementById("about-section");
-
-        if (section) {
-          section.scrollIntoView({
-            behavior: "smooth"
-          });
-        }
-      }
-    </script>
 
   </body>
 </html>
