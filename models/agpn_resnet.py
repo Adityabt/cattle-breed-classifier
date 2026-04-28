@@ -60,7 +60,7 @@ class AGPNResNet50(nn.Module):
     def __init__(self, num_classes=5):
         super().__init__()
 
-        self.backbone = models.resnet50(weights="IMAGENET1K_V1")
+        self.backbone = models.resnet50(weights=None)
 
         self.cbam3 = CBAM(1024)
         self.cbam4 = CBAM(2048)
