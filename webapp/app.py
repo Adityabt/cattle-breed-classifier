@@ -79,13 +79,19 @@ import gdown
 
 model = AGPNResNet50(num_classes=len(class_names))
 
+os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+
 if not os.path.exists(MODEL_PATH):
     print("[App] Downloading model from Google Drive...")
     url = "https://drive.google.com/uc?id=1UmDf7rhDRkoAj_PKQMPgvYGicH5adK8C"
     gdown.download(url, MODEL_PATH, quiet=False)
 
-model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
-print(f"[App] Loaded weights from {MODEL_PATH}")
+try:
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+    print(f"[App] Loaded weights from {MODEL_PATH}")
+except Exception as e:
+    print(f"[App] ERROR loading model: {e}")
+    raise RuntimeError("Model failed to load. Check download or file integrity.")
 
 model = model.to(device)
 model.eval()
