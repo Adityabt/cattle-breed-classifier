@@ -302,8 +302,8 @@ def predict():
 
     session["latest_result"] = {
         "run_id":       run_id,
-        "image_path":   f"static/uploads/{first_fname}",
-        "heatmap_path": f"static/heatmaps/{heatmap_fname}",
+        "image_path":   f"uploads/{first_fname}",
+        "heatmap_path": f"heatmaps/{heatmap_fname}",    
         "predictions":  result["top3"],
         "all_probs":    result["all_probs"],
         "class_names":  class_names,
