@@ -17,7 +17,7 @@ from PIL import Image, UnidentifiedImageError
 from torchvision import transforms
 from werkzeug.utils import secure_filename
 
-from gradcam import GradCAM
+from webapp.gradcam import GradCAM
 from models.agpn_resnet import AGPNResNet50
 
 app = Flask(__name__)
