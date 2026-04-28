@@ -1,76 +1,879 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <title>About - CattleAI</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About — CattleAI</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
     />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      .about-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 100px 32px 80px;
+      }
+
+      /* ── HERO ── */
+      .about-hero {
+        text-align: center;
+        margin-bottom: 64px;
+      }
+      .about-hero .eyebrow {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--accent-cyan);
+        margin-bottom: 16px;
+      }
+      .about-hero h1 {
+        font-size: clamp(32px, 5vw, 52px);
+        font-weight: 800;
+        margin: 0 0 18px;
+        line-height: 1.15;
+        background: linear-gradient(
+          135deg,
+          #ffffff 40%,
+          rgba(0, 242, 254, 0.75)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .about-hero .hero-sub {
+        font-size: 17px;
+        line-height: 1.75;
+        color: var(--text-secondary);
+        max-width: 640px;
+        margin: 0 auto 32px;
+      }
+      .hero-tags {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+      }
+      .hero-tag {
+        font-size: 12px;
+        font-family: "Space Mono", monospace;
+        padding: 5px 14px;
+        border-radius: 20px;
+        background: rgba(0, 242, 254, 0.07);
+        border: 1px solid rgba(0, 242, 254, 0.2);
+        color: var(--accent-cyan);
+      }
+
+      /* ── SECTION TITLES ── */
+      .section-eyebrow {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--accent-cyan);
+        margin: 0 0 10px;
+      }
+      .section-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 6px;
+        color: var(--text-primary);
+      }
+      .section-desc {
+        font-size: 15px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin: 0 0 32px;
+      }
+
+      /* ── DIVIDER ── */
+      .about-divider {
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        margin: 56px 0;
+      }
+
+      /* ── PANEL BASE ── */
+      .about-panel {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        backdrop-filter: blur(20px);
+      }
+
+      /* ── PROBLEM / SOLUTION TWO-COL ── */
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      @media (max-width: 720px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .prob-card {
+        background: rgba(239, 68, 68, 0.05);
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        border-radius: 14px;
+        padding: 24px;
+      }
+      .sol-card {
+        background: rgba(0, 242, 254, 0.04);
+        border: 1px solid rgba(0, 242, 254, 0.15);
+        border-radius: 14px;
+        padding: 24px;
+      }
+      .card-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        border-radius: 20px;
+        padding: 4px 12px;
+        margin-bottom: 14px;
+      }
+      .badge-red {
+        background: rgba(239, 68, 68, 0.12);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+      .badge-cyan {
+        background: rgba(0, 242, 254, 0.1);
+        color: var(--accent-cyan);
+        border: 1px solid rgba(0, 242, 254, 0.25);
+      }
+      .card-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 10px;
+      }
+      .card-body {
+        font-size: 14px;
+        line-height: 1.75;
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      /* ── PIPELINE STEPS ── */
+      .pipeline {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-top: 8px;
+      }
+      .pipe-step {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+        padding: 20px 18px;
+        position: relative;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .pipe-step:hover {
+        border-color: rgba(0, 242, 254, 0.25);
+        background: rgba(0, 242, 254, 0.04);
+      }
+      .pipe-num {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--accent-cyan);
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+      }
+      .pipe-icon {
+        font-size: 22px;
+        margin-bottom: 10px;
+        display: block;
+      }
+      .pipe-name {
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0 0 6px;
+      }
+      .pipe-desc {
+        font-size: 12px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      /* ── MODULE CARDS ── */
+      .module-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(280px, 1fr));
+        gap: 16px;
+      }
+      .module-card {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px;
+        padding: 24px;
+        transition: border-color 0.2s;
+      }
+      .module-card:hover {
+        border-color: rgba(0, 242, 254, 0.2);
+      }
+      .module-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+      .module-icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+      .icon-cyan {
+        background: rgba(0, 242, 254, 0.1);
+        border: 1px solid rgba(0, 242, 254, 0.2);
+      }
+      .icon-green {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+      }
+      .icon-purple {
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+      }
+      .icon-amber {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+      }
+      .module-name {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0 0 3px;
+      }
+      .module-tag {
+        font-size: 11px;
+        font-family: "Space Mono", monospace;
+        color: var(--text-secondary);
+      }
+      .module-desc {
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      /* ── METRICS ROW ── */
+      .metrics-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 14px;
+        margin-top: 8px;
+      }
+      .metric-card {
+        background: rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+        padding: 20px 18px;
+        text-align: center;
+        transition: border-color 0.2s;
+      }
+      .metric-card:hover {
+        border-color: rgba(0, 242, 254, 0.2);
+      }
+      .metric-value {
+        font-family: "Space Mono", monospace;
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--accent-cyan);
+        display: block;
+        margin-bottom: 6px;
+        line-height: 1;
+      }
+      .metric-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .metric-sub {
+        font-size: 11px;
+        color: var(--text-secondary);
+        opacity: 0.6;
+        margin-top: 4px;
+      }
+
+      /* ── BREED CHIPS ── */
+      .breed-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .breed-chip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 10px;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .breed-chip:hover {
+        border-color: rgba(0, 242, 254, 0.25);
+        background: rgba(0, 242, 254, 0.05);
+      }
+      .breed-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* ── FEATURE LIST ── */
+      .feature-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+        margin-top: 8px;
+      }
+      .feature-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        background: rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 14px 16px;
+      }
+      .feature-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .feature-text strong {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 3px;
+      }
+      .feature-text span {
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+
+      /* ── TEAM ── */
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+      .team-card {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px;
+        padding: 24px 20px;
+        text-align: center;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .team-card:hover {
+        border-color: rgba(0, 242, 254, 0.2);
+        background: rgba(0, 242, 254, 0.03);
+      }
+      .team-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(0, 242, 254, 0.1);
+        border: 1px solid rgba(0, 242, 254, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin: 0 auto 14px;
+      }
+      .team-name {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 4px;
+      }
+      .team-id {
+        font-size: 11px;
+        font-family: "Space Mono", monospace;
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      /* ── TECH STACK ── */
+      .stack-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .stack-chip {
+        font-size: 12px;
+        font-family: "Space Mono", monospace;
+        padding: 5px 13px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--text-secondary);
+        transition: all 0.2s;
+      }
+      .stack-chip:hover {
+        background: rgba(0, 242, 254, 0.08);
+        border-color: rgba(0, 242, 254, 0.2);
+        color: var(--accent-cyan);
+      }
+
+      @media (max-width: 600px) {
+        .about-container {
+          padding: 90px 16px 60px;
+        }
+      }
+    </style>
   </head>
 
   <body>
-
     <!-- NAVBAR -->
-    <div class="navbar">
+    <nav class="navbar">
       <div class="nav-content">
-        <div class="logo">🐄 CattleAI</div>
-
+        <div class="logo">BOVISION</div>
         <div class="nav-links">
-          <span onclick="location.href='/'">Home</span>
-          <span onclick="location.href='/'">Predict</span>
-          <span onclick="location.href='/about'">About</span>
+          <span onclick="location.href = '/'">Home</span>
+          <span onclick="location.href = '/'">Predict</span>
+          <span class="active">About</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="about-container">
+      <!-- ── HERO ── -->
+      <div class="about-hero">
+        <p class="eyebrow">Research Project · Deep Learning · Cattle AI</p>
+        <h1>Image-Based Cattle Breed Identification Using Attention Guided Part Network And Multi-View Feature Fusion</h1>
+        <p class="hero-sub">
+          A full-stack deep learning–based system for cattle breed classification that leverages an AGPN-enhanced ResNet50 with multi-view feature fusion, integrated with Grad-CAM visualization and an interactive web interface to deliver accurate and interpretable predictions for practical agricultural applications.
+        </p>
+        <div class="hero-tags">
+          <span class="hero-tag">ResNet50</span>
+          <span class="hero-tag">AGPN</span>
+          <span class="hero-tag">MVFF</span>
+          <span class="hero-tag">Grad-CAM</span>
+          <span class="hero-tag">Flask</span>
+          <span class="hero-tag">PyTorch</span>
+          <span class="hero-tag">Fine-Grained Classification</span>
+        </div>
+      </div>
+
+      <!-- ── PROBLEM & SOLUTION ── -->
+      <div class="about-panel" style="margin-bottom: 20px">
+        <p class="section-eyebrow">The Challenge</p>
+        <h2 class="section-title">Why Automated Breed Identification?</h2>
+        <p class="section-desc">
+          Accurate cattle breed identification is essential for livestock traceability, selective breeding, dairy productivity, and genetic conservation. It enables better decision-making and improved farm outcomes. However, traditional manual methods are subjective, error-prone, and do not scale efficiently for large herds.
+        </p>
+        <div class="two-col">
+          <div class="prob-card">
+            <span class="card-badge badge-red">⚠ The Problem</span>
+            <p class="card-title">Limitations of Existing Approaches</p>
+            <p class="card-body">
+              Current vision-based systems rely heavily on global image features, ignoring discriminative regions like face, hump, and horn structure. High inter-breed similarity and pose variation make identification inconsistent and expert-dependent.
+            </p>
+          </div>
+          <div class="sol-card">
+            <span class="card-badge badge-cyan">✦ Our Solution</span>
+            <p class="card-title">Attention-Guided Deep Learning</p>
+            <p class="card-body">
+              Transfer learning on ResNet50 with attention-guided part extraction focuses on discriminative body regions. Multi-view fusion adds viewpoint robustness — reducing expert dependency while improving classification reliability.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PIPELINE ── -->
+      <div class="about-panel" style="margin-bottom: 20px">
+        <p class="section-eyebrow">How It Works</p>
+        <h2 class="section-title">End-to-End Inference Pipeline</h2>
+        <p class="section-desc">
+          From raw image to calibrated prediction in five stages.
+        </p>
+        <div class="pipeline">
+          <div class="pipe-step">
+            <p class="pipe-num">STEP 01</p>
+            <span class="pipe-icon">📷</span>
+            <p class="pipe-name">Image Ingestion</p>
+            <p class="pipe-desc">
+              Upload JPG, PNG, or WebP up to 10 MB. Multi-image batches
+              supported for MVFF fusion.
+            </p>
+          </div>
+          <div class="pipe-step">
+            <p class="pipe-num">STEP 02</p>
+            <span class="pipe-icon">🔄</span>
+            <p class="pipe-name">Preprocessing</p>
+            <p class="pipe-desc">
+              Resized to 224×224, normalised with ImageNet statistics, converted
+              to a PyTorch tensor.
+            </p>
+          </div>
+          <div class="pipe-step">
+            <p class="pipe-num">STEP 03</p>
+            <span class="pipe-icon">🧠</span>
+            <p class="pipe-name">AGPN + MVFF Inference</p>
+            <p class="pipe-desc">
+              ResNet50 backbone with CBAM attention extracts part-aware
+              features. MVFF fuses multi-view embeddings.
+            </p>
+          </div>
+          <div class="pipe-step">
+            <p class="pipe-num">STEP 04</p>
+            <span class="pipe-icon">🌡️</span>
+            <p class="pipe-name">Temperature Calibration</p>
+            <p class="pipe-desc">
+              Logits are scaled by T=1.4 before softmax to produce
+              well-calibrated confidence probabilities.
+            </p>
+          </div>
+          <div class="pipe-step">
+            <p class="pipe-num">STEP 05</p>
+            <span class="pipe-icon">📊</span>
+            <p class="pipe-name">Results & Grad-CAM</p>
+            <p class="pipe-desc">
+              Top-3 predictions with confidence, entropy score, and a visual
+              Grad-CAM attention overlay.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MODULES ── -->
+      <div class="about-panel" style="margin-bottom: 20px">
+        <p class="section-eyebrow">Model Architecture</p>
+        <h2 class="section-title">Four Core Components</h2>
+        <p class="section-desc">
+          Built on a ResNet50 backbone pre-trained on ImageNet, enhanced with
+          two purpose-built modules that address the specific challenges of
+          fine-grained cattle breed classification.
+        </p>
+        <div class="module-grid">
+          <div class="module-card">
+            <div class="module-header">
+              <div class="module-icon-wrap icon-cyan">🏗️</div>
+              <div>
+                <p class="module-name">ResNet50 Backbone</p>
+                <p class="module-tag">Transfer Learning</p>
+              </div>
+            </div>
+            <p class="module-desc">
+              A 50-layer residual network pre-trained on 1.2M ImageNet images
+              provides a rich feature extractor. Transfer learning overcomes the
+              limited size of cattle-specific datasets, giving the model strong
+              low-level feature representations from the start.
+            </p>
+          </div>
+          <div class="module-card">
+            <div class="module-header">
+              <div class="module-icon-wrap icon-green">🎯</div>
+              <div>
+                <p class="module-name">AGPN</p>
+                <p class="module-tag">Attention-Guided Part Network</p>
+              </div>
+            </div>
+            <p class="module-desc">
+              Integrates Convolutional Block Attention Modules (CBAM) into the
+              deeper ResNet layers. Channel attention identifies which feature
+              maps encode discriminative traits like coat texture and colour.
+              Spatial attention localises the most informative image regions —
+              muzzle, ears, body markings — rather than relying on coarse global
+              features.
+            </p>
+          </div>
+          <div class="module-card">
+            <div class="module-header">
+              <div class="module-icon-wrap icon-purple">🔀</div>
+              <div>
+                <p class="module-name">MVFF</p>
+                <p class="module-tag">Multi-View Feature Fusion</p>
+              </div>
+            </div>
+            <p class="module-desc">
+              Aggregates feature embeddings from multiple images of the same
+              animal using mean pooling or concatenation. By fusing
+              representations across viewpoints, MVFF reduces sensitivity to
+              pose-induced variation and provides the classifier with a richer,
+              more holistic description of the animal's appearance.
+            </p>
+          </div>
+          <div class="module-card">
+            <div class="module-header">
+              <div class="module-icon-wrap icon-amber">🔥</div>
+              <div>
+                <p class="module-name">Grad-CAM</p>
+                <p class="module-tag">Explainable AI</p>
+              </div>
+            </div>
+            <p class="module-desc">
+              Gradient-weighted Class Activation Mapping generates a visual
+              heatmap highlighting the image regions that most influenced the
+              model's prediction. This makes the system's decision-making
+              transparent and interpretable — essential for building trust in
+              agricultural AI tools.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PERFORMANCE METRICS ── -->
+      <div class="about-panel" style="margin-bottom: 20px">
+        <p class="section-eyebrow">Performance</p>
+        <h2 class="section-title">Validation Accuracy by Stage</h2>
+        <p class="section-desc">
+          Trained and evaluated on a curated dataset of 1,208 images across five
+          breeds, each progressive enhancement delivers a measurable accuracy
+          gain.
+        </p>
+        <div class="metrics-row">
+          <div class="metric-card">
+            <span class="metric-value">84.92%</span>
+            <span class="metric-label">Baseline</span>
+            <p class="metric-sub">ResNet50 only</p>
+          </div>
+          <div class="metric-card">
+            <span class="metric-value">93.85%</span>
+            <span class="metric-label">+ AGPN</span>
+            <p class="metric-sub">With attention</p>
+          </div>
+          <div class="metric-card">
+            <span class="metric-value">96.25%</span>
+            <span class="metric-label">+ MVFF</span>
+            <p class="metric-sub">Full pipeline</p>
+          </div>
+          <div class="metric-card">
+            <span class="metric-value">1,208</span>
+            <span class="metric-label">Images</span>
+            <p class="metric-sub">Training dataset</p>
+          </div>
+          <div class="metric-card">
+            <span class="metric-value">5</span>
+            <span class="metric-label">Breeds</span>
+            <p class="metric-sub">Classified</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BREEDS ── -->
+      <div class="about-panel" style="margin-bottom: 20px">
+        <p class="section-eyebrow">Supported Breeds</p>
+        <h2 class="section-title">Five Cattle Breeds Classified</h2>
+        <p class="section-desc">
+          Selected to cover a range of visual similarity challenges — from
+          highly distinctive breeds to closely related ones that share coat
+          colour and body proportions.
+        </p>
+        <div class="breed-chips">
+          <div class="breed-chip">
+            <span class="breed-dot" style="background: #ef4444"></span>Ayrshire
+          </div>
+          <div class="breed-chip">
+            <span class="breed-dot" style="background: #92400e"></span>Brown
+            Swiss
+          </div>
+          <div class="breed-chip">
+            <span class="breed-dot" style="background: #1d4ed8"></span>Holstein
+            Friesian
+          </div>
+          <div class="breed-chip">
+            <span class="breed-dot" style="background: #d97706"></span>Jersey
+          </div>
+          <div class="breed-chip">
+            <span class="breed-dot" style="background: #dc2626"></span>Red Dane
+          </div>
+        </div>
+        <p
+          style="
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 16px;
+            line-height: 1.7;
+          "
+        >
+          Certain breed pairs — particularly Brown Swiss and Jersey — share
+          broadly similar body proportions and coat colouration, making this a
+          <strong>fine-grained classification</strong>
+          problem that challenges even experienced zootechnicians. The AGPN's
+          spatial attention specifically addresses this by focusing on subtle
+          discriminative regions.
+        </p>
+      </div>
+
+      <!-- ── FEATURES ── -->
+      <div class="about-panel" style="margin-bottom: 20px">
+        <p class="section-eyebrow">Application Features</p>
+        <h2 class="section-title">What the System Offers</h2>
+        <p class="section-desc">
+          Beyond the model — a complete, production-ready web application.
+        </p>
+        <div class="feature-list">
+          <div class="feature-item">
+            <span class="feature-icon">📷</span>
+            <div class="feature-text">
+              <strong>Real-Time Image Upload</strong>
+              <span
+                >Upload from device storage or capture directly from camera.
+                Supports JPG, PNG, and WebP up to 10 MB.</span
+              >
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🎯</span>
+            <div class="feature-text">
+              <strong>Top-3 Predictions</strong>
+              <span
+                >Ranked breed predictions with calibrated confidence scores and
+                colour-coded certainty indicators.</span
+              >
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🔥</span>
+            <div class="feature-text">
+              <strong>Grad-CAM Attention Map</strong>
+              <span
+                >Toggle a heatmap overlay on the input image to see exactly
+                which regions drove the model's decision.</span
+              >
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📊</span>
+            <div class="feature-text">
+              <strong>Probability Distribution</strong>
+              <span
+                >Bar chart and doughnut chart showing softmax confidence across
+                all five breeds simultaneously.</span
+              >
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📈</span>
+            <div class="feature-text">
+              <strong>Session Accuracy Trend</strong>
+              <span
+                >Line graph tracking prediction confidence across your session
+                to monitor consistency over time.</span
+              >
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">⚠️</span>
+            <div class="feature-text">
+              <strong>Uncertainty Detection</strong>
+              <span
+                >Entropy-based rejection flags ambiguous or non-cattle images
+                before a misleading prediction is shown.</span
+              >
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🌡️</span>
+            <div class="feature-text">
+              <strong>Temperature Calibration</strong>
+              <span
+                >Logit scaling (T=1.4) produces better-calibrated confidence
+                scores that reflect true model uncertainty.</span
+              >
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🕓</span>
+            <div class="feature-text">
+              <strong>Prediction History</strong>
+              <span
+                >Session-scoped history of recent predictions with breed name
+                and confidence, visible across analyses.</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TECH STACK ── -->
+      <div class="about-panel" style="margin-bottom: 20px">
+        <p class="section-eyebrow">Technology Stack</p>
+        <h2 class="section-title">Built With</h2>
+        <p class="section-desc">
+          A modern Python deep learning stack served through a lightweight Flask
+          web application.
+        </p>
+        <div class="stack-chips">
+          <span class="stack-chip">PyTorch</span>
+          <span class="stack-chip">torchvision</span>
+          <span class="stack-chip">ResNet50</span>
+          <span class="stack-chip">CBAM</span>
+          <span class="stack-chip">Grad-CAM</span>
+          <span class="stack-chip">Flask</span>
+          <span class="stack-chip">OpenCV</span>
+          <span class="stack-chip">Pillow</span>
+          <span class="stack-chip">NumPy</span>
+          <span class="stack-chip">Chart.js</span>
+          <span class="stack-chip">Jinja2</span>
+          <span class="stack-chip">Temperature Scaling</span>
+          <span class="stack-chip">ImageNet Pretraining</span>
+        </div>
+      </div>
+
+      <!-- ── TEAM ── -->
+      <div class="about-panel">
+        <p class="section-eyebrow">Project Team</p>
+        <h2 class="section-title">Developed By</h2>
+        <div>
+          <p></p>
+        </div>
+        <div class="team-grid">
+          <div class="team-card">
+            <div class="team-avatar">👨‍💻</div>
+            <p class="team-name">Aditya Thakur</p>
+            <p class="team-id">RA2311043010020</p>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar">👩‍💻</div>
+            <p class="team-name">Jiya</p>
+            <p class="team-id">RA2311043010021</p>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar">👨‍💻</div>
+            <p class="team-name">Ujaan Sen</p>
+            <p class="team-id">RA2311043010037</p>
+          </div>
         </div>
       </div>
     </div>
-
-    <div class="dashboard-container">
-      <div class="dashboard-header">
-        <h1>About This Project</h1>
-        <p class="subtitle">State-of-the-art cattle breed classification</p>
-      </div>
-
-      <div class="dashboard-grid" style="grid-template-columns: 1fr;">
-        <div class="panel">
-          <div class="panel-header">
-            <h2>System Architecture</h2>
-          </div>
-          <p style="font-size: 16px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 15px;">
-            This AI-powered system identifies cattle breeds using deep learning.
-            It is built on a ResNet50 backbone enhanced with Attention-Guided
-            Part Network (AGPN) and Multi-View Feature Fusion (MVFF).
-          </p>
-          <p style="font-size: 16px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 15px;">
-            The model focuses on key visual features such as coat patterns,
-            facial structure, and body shape to classify breeds accurately.
-          </p>
-          <p style="font-size: 16px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 15px;">
-            Along with predictions, the system provides confidence scores
-            and Grad-CAM attention maps to explain model decisions.
-          </p>
-          <p style="font-size: 16px; line-height: 1.6; color: var(--text-secondary);">
-            This project demonstrates the application of computer vision
-            in agriculture and livestock management.
-          </p>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header">
-            <h2>Project Team</h2>
-          </div>
-          <ul style="list-style: none; padding: 0; margin: 0;">
-            <li style="font-size: 18px; margin-bottom: 10px; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 20px;">👨‍💻</span> <strong>Ujaan Sen</strong> (RA2311043010037)
-            </li>
-            <li style="font-size: 18px; margin-bottom: 10px; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 20px;">👨‍💻</span> <strong>Aditya Thakur</strong> (RA2311043010020)
-            </li>
-            <li style="font-size: 18px; margin-bottom: 10px; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 20px;">👩‍💻</span> <strong>Jiya</strong> (RA2311043010021)
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
   </body>
 </html>

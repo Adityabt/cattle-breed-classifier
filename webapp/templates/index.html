@@ -1,73 +1,421 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cattle Breed Classifier | CattleAI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <style>
+      /* ── TOAST ── */
+      #toast-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .toast {
+        min-width: 280px;
+        max-width: 380px;
+        padding: 14px 18px;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.5;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        cursor: pointer;
+      }
+      .toast.removing {
+        animation: toastOut 0.3s ease forwards;
+      }
+      .toast.error {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.35);
+        color: #fca5a5;
+      }
+      .toast.success {
+        background: rgba(16, 185, 129, 0.15);
+        border-color: rgba(16, 185, 129, 0.35);
+        color: #6ee7b7;
+      }
+      .toast.info {
+        background: rgba(0, 242, 254, 0.1);
+        border-color: rgba(0, 242, 254, 0.3);
+        color: #a5f3fc;
+      }
+      .toast-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .toast-msg {
+        flex: 1;
+      }
+
+      @keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translateX(30px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0) scale(1);
+        }
+      }
+      @keyframes toastOut {
+        from {
+          opacity: 1;
+          transform: translateX(0) scale(1);
+        }
+        to {
+          opacity: 0;
+          transform: translateX(30px) scale(0.9);
+        }
+      }
+
+      /* ── UPLOAD PROGRESS ── */
+      .progress-wrap {
+        margin-top: 20px;
+        display: none;
+      }
+      .progress-wrap.visible {
+        display: block;
+      }
+      .progress-bar-track {
+        width: 100%;
+        height: 4px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+      .progress-bar-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 4px;
+        background: linear-gradient(
+          90deg,
+          var(--accent-cyan),
+          var(--accent-purple)
+        );
+        transition: width 0.3s ease;
+      }
+      .progress-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 8px;
+        text-align: center;
+        letter-spacing: 0.5px;
+      }
+
+      /* ── FILE CHIP ── */
+      .file-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+        justify-content: center;
+      }
+      .file-chip {
+        background: rgba(0, 242, 254, 0.08);
+        border: 1px solid rgba(0, 242, 254, 0.2);
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 12px;
+        color: var(--accent-cyan);
+        font-weight: 500;
+        letter-spacing: 0.3px;
+      }
+
+      /* ── CAMERA MODAL ── */
+      .camera-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 4, 10, 0.88);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        z-index: 5000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .camera-modal-backdrop.open {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .camera-modal {
+        width: 100%;
+        max-width: 500px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+        transform: scale(0.95) translateY(20px);
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+      }
+      .camera-modal-backdrop.open .camera-modal {
+        transform: scale(1) translateY(0);
+      }
+      .camera-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .camera-modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .camera-close-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: var(--text-secondary);
+        font-size: 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+        line-height: 1;
+        padding: 0;
+      }
+      .camera-close-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+      }
+      #camera-video {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: block;
+        background: #000;
+      }
+      .camera-modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .camera-modal-actions .btn-primary {
+        flex: 1;
+        padding: 14px 20px;
+        font-size: 15px;
+      }
+      .camera-modal-actions .btn-danger {
+        padding: 14px 20px;
+        font-size: 15px;
+        border-radius: 50px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+
+      /* ── CAPTURE FLASH ── */
+      .capture-flash {
+        position: absolute;
+        inset: 0;
+        background: #fff;
+        border-radius: 24px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.08s;
+      }
+      .capture-flash.flash {
+        opacity: 0.5;
+      }
+
+      /* ── DRAG OVERLAY ── */
+      .drag-overlay {
+        position: absolute;
+        inset: 0;
+        border-radius: 22px;
+        background: rgba(0, 242, 254, 0.06);
+        border: 2px dashed var(--accent-cyan);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--accent-cyan);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 10;
+      }
+      .upload-container.dragging .drag-overlay {
+        opacity: 1;
+      }
+    </style>
   </head>
 
   <body class="center-layout">
-
-    <!-- 🔥 NAVBAR -->
-    <div class="navbar">
+    <!-- NAVBAR -->
+    <nav class="navbar">
       <div class="nav-content">
-        <div class="logo">🐄 CattleAI</div>
+        <div class="logo">BOVISION</div>
         <div class="nav-links">
           <span class="active">Home</span>
-          <span onclick="location.href='/about'">About</span>
+          <span onclick="location.href = '/about'">About</span>
         </div>
       </div>
-    </div>
+    </nav>
 
-    <!-- 🟢 MAIN CENTERED CONTAINER -->
+    <!-- MAIN -->
     <main class="main-content">
       <div class="hero-section">
         <h1 class="hero-title">Precision Breed Identification</h1>
         <p class="hero-subtitle">
-          Upload an image to leverage state-of-the-art Deep Learning (AGPN-ResNet50) for highly accurate and interpretable cattle breed classification.
+          Upload an image to leverage advanced deep learning (AGPN-ResNet50 +
+          MVFF) for accurate, interpretable cattle breed classification.
         </p>
       </div>
 
-      <div class="upload-container">
-        <form action="/predict" method="post" enctype="multipart/form-data" id="upload-form">
+      <div class="upload-container" id="upload-container">
+        <!-- Drag overlay -->
+        <div class="drag-overlay">⬇ Drop image here</div>
+
+        <!-- UPLOAD FORM -->
+        <form
+          action="/predict"
+          method="post"
+          enctype="multipart/form-data"
+          id="upload-form"
+        >
           <label class="upload-box" id="drop-zone">
             <div class="upload-icon">📸</div>
-            <h2>Drag & Drop Image</h2>
-            <p>or click to browse files</p>
+            <h2>Drag &amp; Drop Image</h2>
+            <p>or click to browse &nbsp;·&nbsp; JPG, PNG, WebP · max 10 MB</p>
             <input
               type="file"
               name="images"
               id="imageInput"
-              accept="image/png, image/jpeg, image/jpg"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
               multiple
               required
             />
           </label>
 
-          <!-- 🔥 IMAGE PREVIEW -->
+          <!-- File chips -->
+          <div class="file-chips" id="file-chips"></div>
+
+          <!-- Preview -->
           <div id="preview-container" class="hidden">
             <div id="preview-grid"></div>
           </div>
 
+          <!-- Progress -->
+          <div class="progress-wrap" id="progress-wrap">
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+            <p class="progress-label" id="progress-label">Uploading…</p>
+          </div>
+
           <div class="action-container">
             <button type="submit" id="predict-btn" class="btn-primary" disabled>
-              <span>Analyze Image</span>
+              Analyze Image
             </button>
           </div>
         </form>
+
+        <div class="divider">— OR —</div>
+
+        <!-- CAMERA TRIGGER -->
+        <div class="camera-container">
+          <button type="button" class="btn-primary" onclick="openCameraModal()">
+            📷 &nbsp;Use Camera
+          </button>
+        </div>
       </div>
     </main>
 
-    <!-- 🔥 LOADING OVERLAY -->
+    <!-- CAMERA MODAL -->
+    <div class="camera-modal-backdrop" id="camera-modal-backdrop">
+      <div class="camera-modal" id="camera-modal">
+        <div class="camera-modal-header">
+          <h3>📷 &nbsp;Live Camera</h3>
+          <button class="camera-close-btn" onclick="closeCameraModal()">
+            ✕
+          </button>
+        </div>
+        <video id="camera-video" autoplay playsinline muted></video>
+        <div class="camera-modal-actions">
+          <button type="button" class="btn-primary" onclick="captureImage()">
+            ⚡ Capture &amp; Analyze
+          </button>
+          <button type="button" class="btn-danger" onclick="closeCameraModal()">
+            Cancel
+          </button>
+        </div>
+        <div class="capture-flash" id="capture-flash"></div>
+      </div>
+    </div>
+    <canvas id="canvas" style="display: none"></canvas>
+
+    <!-- LOADING OVERLAY -->
     <div id="loading-overlay" class="hidden">
       <div class="loader-box">
         <div class="spinner"></div>
-        <h2>Analyzing Image...</h2>
+        <h2>Analyzing Image…</h2>
         <p>Running AGPN-ResNet50 Inference</p>
       </div>
     </div>
 
-    <!-- ✅ SCRIPT -->
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
+    <!-- script.js loads first — it declares all shared vars and camera functions -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 
+    <!-- Inline script: ONLY toast UI helper. No variable redeclarations. -->
+    <script>
+      function showToast(message, type, duration) {
+        type = type || "info";
+        duration = duration || 4000;
+        var icons = { error: "⚠️", success: "✅", info: "ℹ️" };
+        var container = document.getElementById("toast-container");
+        var toast = document.createElement("div");
+        toast.className = "toast " + type;
+        toast.innerHTML =
+          '<span class="toast-icon">' +
+          icons[type] +
+          '</span><span class="toast-msg">' +
+          message +
+          "</span>";
+        toast.onclick = function () {
+          removeToast(toast);
+        };
+        container.appendChild(toast);
+        setTimeout(function () {
+          removeToast(toast);
+        }, duration);
+      }
+
+      function removeToast(toast) {
+        if (toast.classList.contains("removing")) return;
+        toast.classList.add("removing");
+        setTimeout(function () {
+          toast.remove();
+        }, 300);
+      }
+    </script>
   </body>
 </html>

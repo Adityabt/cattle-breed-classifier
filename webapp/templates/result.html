@@ -1,119 +1,1102 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <title>Prediction Dashboard | CattleAI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-    <!-- Chart.js for data visualization -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prediction Dashboard | BOVISION</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      /* ── RESET / BASE ── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      /* ── ERROR STATE ── */
+      .error-panel {
+        max-width: 560px;
+        margin: 120px auto 0;
+        background: var(--glass-bg);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        border-radius: var(--radius-lg);
+        padding: 50px 40px;
+        text-align: center;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 0 60px rgba(239, 68, 68, 0.08);
+        animation: slideUpFade 0.5s ease forwards;
+      }
+      .error-panel .error-icon {
+        font-size: 52px;
+        margin-bottom: 20px;
+      }
+      .error-panel h2 {
+        font-size: 22px;
+        margin: 0 0 12px;
+        color: #fca5a5;
+        font-weight: 700;
+      }
+      .error-panel p {
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.6;
+        margin: 0 0 30px;
+      }
+
+      /* ── DASHBOARD LAYOUT ── */
+      .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 100px 32px 60px;
+      }
+
+      .dashboard-header {
+        text-align: center;
+        margin-bottom: 36px;
+      }
+      .dashboard-header h1 {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        background: linear-gradient(135deg, #fff 60%, rgba(0, 242, 254, 0.8));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .dashboard-header .subtitle {
+        color: var(--text-secondary);
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      /* ── MAIN GRID ── */
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: auto;
+        gap: 20px;
+      }
+
+      /* ── PANEL BASE ── */
+      .panel {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        backdrop-filter: blur(20px);
+        min-width: 0;
+      }
+      .panel h2 {
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-secondary);
+        margin: 0 0 18px;
+      }
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .panel-header h2 {
+        margin: 0;
+      }
+
+      /* ── GRID PLACEMENT ── */
+      .panel-image {
+        grid-column: 1;
+        grid-row: 1;
+      }
+      .panel-top {
+        grid-column: 2;
+        grid-row: 1;
+      }
+      .panel-stats {
+        grid-column: 3;
+        grid-row: 1;
+      }
+      .panel-bar-chart {
+        grid-column: 1 / 3;
+        grid-row: 2;
+      }
+      .panel-pie {
+        grid-column: 3;
+        grid-row: 2;
+      }
+      .panel-line {
+        grid-column: 1 / 3;
+        grid-row: 3;
+      }
+      .panel-history {
+        grid-column: 3;
+        grid-row: 3;
+      }
+      .panel-breeds {
+        grid-column: 1 / 4;
+        grid-row: 4;
+      }
+
+      /* ── IMAGE PANEL ── */
+      .image-wrapper {
+        position: relative;
+        width: 100%;
+        height: 280px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .full-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        border-radius: 12px;
+      }
+      #main-image {
+        z-index: 1;
+        opacity: 1;
+      }
+      #heatmap-image {
+        z-index: 2;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+      }
+      #heatmap-image.active {
+        opacity: 1;
+      }
+
+      /* ── META BADGES ── */
+      .meta-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 12px;
+      }
+      .meta-badge {
+        font-size: 11px;
+        font-family: "Space Mono", monospace;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 3px 9px;
+        color: var(--text-secondary);
+      }
+
+      /* ── TOGGLE BTN ── */
+      .btn-small {
+        font-size: 12px;
+        font-family: "Outfit", sans-serif;
+        font-weight: 500;
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .btn-small:hover,
+      .btn-small.active {
+        background: rgba(0, 242, 254, 0.1);
+        border-color: rgba(0, 242, 254, 0.35);
+        color: var(--accent-cyan);
+      }
+
+      /* ── TOP PREDICTION PANEL ── */
+      .primary-result {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+      .top-breed {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1.2;
+        flex: 1;
+        min-width: 0;
+        word-break: break-word;
+      }
+      .confidence-circle {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        border: 2.5px solid var(--accent-cyan);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Space Mono", monospace;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--accent-cyan);
+        flex-shrink: 0;
+        box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
+      }
+      .entropy-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-family: "Space Mono", monospace;
+        color: var(--text-secondary);
+        margin-bottom: 14px;
+      }
+      .entropy-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* ── INSIGHT BOX ── */
+      .insights-box {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+        padding: 14px;
+      }
+      .insights-box h3 {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-secondary);
+        margin: 0 0 8px;
+      }
+      .insights-box p {
+        font-size: 13px;
+        line-height: 1.7;
+        margin: 0;
+        color: var(--accent-cyan);
+      }
+
+      /* ── STATS GRID ── */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .stat-card {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .stat-icon {
+        font-size: 16px;
+      }
+      .stat-label {
+        font-size: 11px;
+        color: var(--text-secondary);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+      }
+      .stat-value {
+        font-family: "Space Mono", monospace;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      /* ── CHART CONTAINERS ── */
+      .chart-container {
+        position: relative;
+        width: 100%;
+        height: 240px;
+      }
+      .chart-container-sm {
+        position: relative;
+        width: 100%;
+        height: 220px;
+      }
+
+      /* ── BREED ROWS ── */
+      .breed-list {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .breed-row {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 12px 16px;
+        transition: background 0.2s;
+      }
+      .breed-row:hover {
+        background: rgba(0, 0, 0, 0.35);
+      }
+      .breed-rank {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-secondary);
+        width: 22px;
+        flex-shrink: 0;
+      }
+      .breed-name {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .breed-conf-val {
+        font-family: "Space Mono", monospace;
+        font-size: 13px;
+        font-weight: 700;
+        margin-left: auto;
+      }
+      .breed-conf-val.high {
+        color: var(--accent-green, #10b981);
+      }
+      .breed-conf-val.medium {
+        color: var(--accent-yellow, #f59e0b);
+      }
+      .breed-conf-val.low {
+        color: var(--accent-red, #ef4444);
+      }
+      .breed-bar-wrap {
+        width: 100%;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 3px;
+        margin-top: 6px;
+        overflow: hidden;
+      }
+      .breed-bar {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .breed-bar.high {
+        background: linear-gradient(90deg, #10b981, #34d399);
+      }
+      .breed-bar.medium {
+        background: linear-gradient(90deg, #f59e0b, #fcd34d);
+      }
+      .breed-bar.low {
+        background: linear-gradient(90deg, #ef4444, #f87171);
+      }
+
+      /* ── HISTORY ── */
+      .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .history-card {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 12px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+      }
+      .history-card:hover {
+        background: rgba(0, 0, 0, 0.35);
+      }
+      .history-breed {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .history-conf {
+        font-family: "Space Mono", monospace;
+        font-size: 12px;
+      }
+      .history-conf.high {
+        color: #10b981;
+      }
+      .history-conf.medium {
+        color: #f59e0b;
+      }
+      .history-conf.low {
+        color: #ef4444;
+      }
+
+      /* ── INFERENCE BADGE ── */
+      .inference-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        color: var(--accent-cyan);
+        background: rgba(0, 242, 254, 0.07);
+        border: 1px solid rgba(0, 242, 254, 0.18);
+        border-radius: 20px;
+        padding: 3px 10px;
+      }
+
+      /* ── FOOTER ── */
+      .dashboard-footer {
+        text-align: center;
+        margin-top: 40px;
+      }
+
+      /* ── GLOW VARIANTS ── */
+      .high-glow {
+        box-shadow: 0 0 40px rgba(16, 185, 129, 0.08);
+      }
+      .medium-glow {
+        box-shadow: 0 0 40px rgba(245, 158, 11, 0.08);
+      }
+      .low-glow {
+        box-shadow: 0 0 40px rgba(239, 68, 68, 0.08);
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 1100px) {
+        .dashboard-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .panel-image {
+          grid-column: 1;
+          grid-row: 1;
+        }
+        .panel-top {
+          grid-column: 2;
+          grid-row: 1;
+        }
+        .panel-stats {
+          grid-column: 1 / 3;
+          grid-row: 2;
+        }
+        .panel-bar-chart {
+          grid-column: 1 / 3;
+          grid-row: 3;
+        }
+        .panel-pie {
+          grid-column: 1;
+          grid-row: 4;
+        }
+        .panel-line {
+          grid-column: 2;
+          grid-row: 4;
+        }
+        .panel-history {
+          grid-column: 1 / 3;
+          grid-row: 5;
+        }
+        .panel-breeds {
+          grid-column: 1 / 3;
+          grid-row: 6;
+        }
+      }
+      @media (max-width: 700px) {
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+        .panel-image,
+        .panel-top,
+        .panel-stats,
+        .panel-bar-chart,
+        .panel-pie,
+        .panel-line,
+        .panel-history,
+        .panel-breeds {
+          grid-column: 1 !important;
+          grid-row: auto !important;
+        }
+        .dashboard-container {
+          padding: 90px 16px 50px;
+        }
+        .error-panel {
+          margin: 90px 16px 0;
+        }
+        .breed-list {
+          flex-direction: column;
+        }
+      }
+    </style>
   </head>
 
   <body>
-
-    <!-- 🔥 NAVBAR -->
-    <div class="navbar">
+    <!-- NAVBAR -->
+    <nav class="navbar">
       <div class="nav-content">
-        <div class="logo">🐄 CattleAI Dashboard</div>
+        <div class="logo">BOVISION</div>
         <div class="nav-links">
-          <span onclick="location.href='/'">New Prediction</span>
-          <span onclick="location.href='/about'">About Model</span>
+          <span onclick="location.href = '/'">New Prediction</span>
+          <span onclick="location.href = '/about'">About Model</span>
         </div>
       </div>
+    </nav>
+
+    {% if error %}
+    <div class="error-panel">
+      <div class="error-icon">⚠️</div>
+      <h2>Analysis Failed</h2>
+      <p>{{ error }}</p>
+      <a href="/"
+        ><button class="btn-primary" style="width: auto; padding: 14px 40px">
+          Try Again
+        </button></a
+      >
     </div>
 
+    {% else %}
+
     <div class="dashboard-container">
-      
-      <!-- HEADER -->
       <div class="dashboard-header">
         <h1>Analysis Results</h1>
-        <p class="subtitle">Detailed breakdown of the model's prediction</p>
+        <p class="subtitle">
+          AGPN + MVFF &nbsp;·&nbsp; Temperature-Calibrated &nbsp;·&nbsp;
+          <span class="inference-badge">⚡ {{ inference_ms }} ms</span>
+        </p>
       </div>
 
       <div class="dashboard-grid">
-        
-        <!-- MAIN IMAGE & ATTENTION MAP PANEL -->
-        <div class="panel image-panel">
+        <!-- ── PANEL 1: IMAGE ── -->
+        <div class="panel panel-image">
           <div class="panel-header">
             <h2>Visual Analysis</h2>
-            <button id="toggle-heatmap" class="btn-small">Show Attention Map</button>
+            <button id="toggle-heatmap" class="btn-small">
+              Show Attention Map
+            </button>
           </div>
-          
-          <div class="image-wrapper" id="image-wrapper">
-            <img src="{{ url_for('static', filename=image_path) }}" id="main-image" class="full-img" alt="Uploaded Cattle" />
-            <img src="{{ url_for('static', filename=heatmap_path) }}" id="heatmap-image" class="full-img overlay-img" alt="Attention Map" />
+          <div class="image-wrapper">
+            <img
+              src="{{ url_for('static', filename=image_path) }}"
+              id="main-image"
+              class="full-img"
+            />
+            <img
+              src="{{ url_for('static', filename=heatmap_path) }}"
+              id="heatmap-image"
+              class="full-img overlay-img"
+            />
+          </div>
+          <div class="meta-badges">
+            <span class="meta-badge"
+              >{{ img_width }} × {{ img_height }} px</span
+            >
+            <span class="meta-badge"
+              >{{ num_images }} frame{% if num_images > 1 %}s{% endif %}</span
+            >
           </div>
         </div>
 
-        <!-- TOP PREDICTION PANEL -->
-        <div class="panel top-prediction-panel {{ predictions[0].color }}-glow">
+        <!-- ── PANEL 2: TOP PREDICTION ── -->
+        <div class="panel panel-top {{ predictions[0].color }}-glow">
           <h2>Top Match</h2>
           <div class="primary-result">
             <h1 class="top-breed">{{ predictions[0].breed }}</h1>
             <div class="confidence-circle">
-              <span>{{ predictions[0].confidence }}%</span>
+              {{ predictions[0].confidence }}%
             </div>
           </div>
+
+          <div class="entropy-badge">
+            <span class="entropy-dot" id="entropy-dot"></span>
+            Entropy: {{ entropy }} &nbsp;·&nbsp; {% if entropy < 0.6 %}High
+            Certainty {% elif entropy < 1.0 %}Moderate Certainty {% else %}Low
+            Certainty{% endif %}
+          </div>
+
           <div class="insights-box">
             <h3>🤖 Model Insight</h3>
-            <p id="dynamic-insight"></p>
+            <p id="dynamic-insight">—</p>
           </div>
         </div>
 
-        <!-- STATS PANEL -->
-        <div class="panel stats-panel">
+        <!-- ── PANEL 3: STATS ── -->
+        <div class="panel panel-stats">
           <h2>Model Statistics</h2>
           <div class="stats-grid">
             <div class="stat-card">
               <span class="stat-icon">⏱️</span>
-              <span class="stat-label">Inference Time</span>
-              <span class="stat-value">{{ inference_time }}s</span>
+              <span class="stat-label">Inference</span>
+              <span class="stat-value">{{ inference_ms }} ms</span>
             </div>
             <div class="stat-card">
               <span class="stat-icon">📐</span>
-              <span class="stat-label">Image Size</span>
-              <span class="stat-value">{{ img_width }}x{{ img_height }}</span>
+              <span class="stat-label">Resolution</span>
+              <span class="stat-value">{{ img_width }}×{{ img_height }}</span>
             </div>
             <div class="stat-card">
               <span class="stat-icon">🧠</span>
               <span class="stat-label">Architecture</span>
-              <span class="stat-value">AGPN-ResNet50</span>
+              <span class="stat-value">AGPN + MVFF</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">🎯</span>
+              <span class="stat-label">Backbone</span>
+              <span class="stat-value">ResNet-50</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">📊</span>
+              <span class="stat-label">Entropy</span>
+              <span class="stat-value">{{ entropy }}</span>
             </div>
             <div class="stat-card">
               <span class="stat-icon">📸</span>
-              <span class="stat-label">Batch Size</span>
+              <span class="stat-label">Frames</span>
               <span class="stat-value">{{ num_images }}</span>
             </div>
           </div>
         </div>
 
-        <!-- DISTRIBUTION CHART PANEL -->
-        <div class="panel chart-panel">
-          <h2>Probability Distribution</h2>
+        <!-- ── PANEL 4: BAR CHART ── -->
+        <div class="panel panel-bar-chart">
+          <div class="panel-header">
+            <h2>Probability Distribution</h2>
+            <span class="meta-badge">Softmax · Calibrated</span>
+          </div>
           <div class="chart-container">
             <canvas id="probabilityChart"></canvas>
           </div>
         </div>
 
-      </div> <!-- End Grid -->
+        <!-- ── PANEL 5: PIE CHART ── -->
+        <div class="panel panel-pie">
+          <div class="panel-header">
+            <h2>Confidence Breakdown</h2>
+            <span class="meta-badge">All Breeds</span>
+          </div>
+          <div class="chart-container-sm">
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
 
-      <div class="dashboard-footer">
-        <a href="/">
-          <button class="btn-primary">Analyze Another Image</button>
-        </a>
+        <!-- ── PANEL 6: HISTORICAL LINE GRAPH ── -->
+        <div class="panel panel-line">
+          <div class="panel-header">
+            <h2>Session Accuracy Trend</h2>
+            <span class="meta-badge">Confidence Over Time</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="lineChart"></canvas>
+          </div>
+        </div>
+
+        <!-- ── PANEL 7: HISTORY ── -->
+        {% if history and history|length > 0 %}
+        <div class="panel panel-history">
+          <div class="panel-header">
+            <h2>Recent Predictions</h2>
+            <span class="meta-badge">Last {{ history|length }}</span>
+          </div>
+          <div class="history-list">
+            {% for h in history %}
+            <div class="history-card">
+              <span class="history-breed">{{ h.breed }}</span>
+              <span class="history-conf {{ h.color }}"
+                >{{ h.confidence }}%</span
+              >
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- ── PANEL 8: TOP 3 BREAKDOWN ── -->
+        <div class="panel panel-breeds">
+          <h2>Top 3 Breed Predictions</h2>
+          <div class="breed-list">
+            {% for p in predictions %}
+            <div class="breed-row">
+              <span class="breed-rank">#{{ loop.index }}</span>
+              <div style="flex: 1; min-width: 0">
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 6px;
+                  "
+                >
+                  <span class="breed-name">{{ p.breed }}</span>
+                  <span class="breed-conf-val {{ p.color }}"
+                    >{{ p.confidence }}%</span
+                  >
+                </div>
+                <div class="breed-bar-wrap">
+                  <div
+                    class="breed-bar {{ p.color }}"
+                    data-width="{{ p.confidence }}"
+                    style="width: 0%"
+                  ></div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
       </div>
 
+      <div class="dashboard-footer">
+        <a href="/"
+          ><button class="btn-primary" style="width: auto; padding: 16px 50px">
+            Analyze Another Image
+          </button></a
+        >
+      </div>
     </div>
 
-    <!-- Pass backend data to JS safely -->
+    <!-- DATA BRIDGE -->
     <script id="model-data" type="application/json">
       {
-        "all_probs": {{ all_probs | tojson }},
-        "class_names": {{ class_names | tojson }},
-        "top_confidence": {{ predictions[0].confidence }}
+        "all_probs":      {{ all_probs | tojson }},
+        "class_names":    {{ class_names | tojson }},
+        "top_confidence": {{ predictions[0].confidence }},
+        "top_color":      "{{ predictions[0].color }}",
+        "entropy":        {{ entropy }},
+        "breed":          "{{ predictions[0].breed }}",
+        "inference_ms":   {{ inference_ms }},
+        "history":        {{ history | tojson if history else '[]' }}
       }
     </script>
 
-    <!-- ✅ SCRIPT -->
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% endif %}
 
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+      var dataEl = document.getElementById("model-data");
+      if (dataEl) {
+        var md = JSON.parse(dataEl.textContent);
+
+        /* ── BREED BARS ── */
+        setTimeout(function () {
+          document.querySelectorAll(".breed-bar").forEach(function (bar) {
+            bar.style.width = bar.dataset.width + "%";
+          });
+        }, 300);
+
+        /* ── ENTROPY DOT ── */
+        var dot = document.getElementById("entropy-dot");
+        if (dot) {
+          if (md.entropy < 0.6) dot.style.background = "#10b981";
+          else if (md.entropy < 1.0) dot.style.background = "#f59e0b";
+          else dot.style.background = "#ef4444";
+        }
+
+        /* ── DYNAMIC INSIGHT ── */
+        var insightEl = document.getElementById("dynamic-insight");
+        if (insightEl) {
+          var msg = "";
+          if (md.top_confidence >= 85 && md.entropy < 0.6) {
+            msg =
+              "Strong visual features consistent with <b>" +
+              md.breed +
+              "</b> detected. High confidence and low entropy confirm a reliable prediction.";
+          } else if (md.top_confidence >= 75) {
+            msg =
+              "The model identifies <b>" +
+              md.breed +
+              "</b> with good confidence. Minor ambiguity detected with lower-ranked breeds.";
+          } else if (md.top_confidence >= 50) {
+            msg =
+              "Moderate confidence for <b>" +
+              md.breed +
+              "</b>. A higher-resolution image may strengthen the prediction signal.";
+          } else {
+            msg =
+              "Low prediction confidence. This breed may fall outside training distribution or image quality may be insufficient.";
+          }
+          insightEl.innerHTML = msg;
+        }
+
+        /* ── HEATMAP TOGGLE ── */
+        var toggleBtn = document.getElementById("toggle-heatmap");
+        var heatmapImg = document.getElementById("heatmap-image");
+        var showing = false;
+
+        if (toggleBtn && heatmapImg) {
+          /* Preload so heatmap appears instantly on first click */
+          var preload = new Image();
+          preload.src = heatmapImg.src;
+
+          toggleBtn.addEventListener("click", function () {
+            showing = !showing;
+            if (showing) {
+              heatmapImg.classList.add("active");
+              toggleBtn.textContent = "Hide Attention Map";
+              toggleBtn.classList.add("active");
+            } else {
+              heatmapImg.classList.remove("active");
+              toggleBtn.textContent = "Show Attention Map";
+              toggleBtn.classList.remove("active");
+            }
+          });
+        }
+
+        /* ── CHART COLORS ── */
+        var BREED_COLORS = [
+          "rgba(0,242,254,0.75)",
+          "rgba(16,185,129,0.75)",
+          "rgba(245,158,11,0.75)",
+          "rgba(239,68,68,0.75)",
+          "rgba(139,92,246,0.75)",
+        ];
+        var BREED_BORDERS = [
+          "rgba(0,242,254,1)",
+          "rgba(16,185,129,1)",
+          "rgba(245,158,11,1)",
+          "rgba(239,68,68,1)",
+          "rgba(139,92,246,1)",
+        ];
+
+        var CHART_DEFAULTS = {
+          color: "rgba(255,255,255,0.5)",
+          gridColor: "rgba(255,255,255,0.05)",
+          tooltipBg: "rgba(10,15,30,0.95)",
+        };
+
+        /* ── BAR CHART ── */
+        var barCtx = document.getElementById("probabilityChart");
+        if (barCtx) {
+          new Chart(barCtx, {
+            type: "bar",
+            data: {
+              labels: md.class_names,
+              datasets: [
+                {
+                  label: "Confidence (%)",
+                  data: md.all_probs,
+                  backgroundColor: BREED_COLORS,
+                  borderColor: BREED_BORDERS,
+                  borderWidth: 1.5,
+                  borderRadius: 8,
+                  borderSkipped: false,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: { duration: 900, easing: "easeOutQuart" },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: CHART_DEFAULTS.tooltipBg,
+                  borderColor: "rgba(255,255,255,0.1)",
+                  borderWidth: 1,
+                  padding: 12,
+                  titleFont: { size: 13, weight: "700" },
+                  bodyFont: { size: 13 },
+                  callbacks: {
+                    label: function (c) {
+                      return " " + c.parsed.y.toFixed(2) + "%";
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  ticks: {
+                    color: CHART_DEFAULTS.color,
+                    font: { size: 11 },
+                    maxRotation: 20,
+                  },
+                  grid: { color: CHART_DEFAULTS.gridColor },
+                },
+                y: {
+                  min: 0,
+                  max: 100,
+                  ticks: {
+                    color: CHART_DEFAULTS.color,
+                    font: { size: 11 },
+                    callback: function (v) {
+                      return v + "%";
+                    },
+                  },
+                  grid: { color: CHART_DEFAULTS.gridColor },
+                },
+              },
+            },
+          });
+        }
+
+        /* ── PIE CHART ── */
+        var pieCtx = document.getElementById("pieChart");
+        if (pieCtx) {
+          new Chart(pieCtx, {
+            type: "doughnut",
+            data: {
+              labels: md.class_names,
+              datasets: [
+                {
+                  data: md.all_probs,
+                  backgroundColor: BREED_COLORS,
+                  borderColor: "rgba(255,255,255,0.08)",
+                  borderWidth: 2,
+                  hoverOffset: 6,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: "60%",
+              animation: { duration: 900, easing: "easeOutQuart" },
+              plugins: {
+                legend: {
+                  display: true,
+                  position: "bottom",
+                  labels: {
+                    color: CHART_DEFAULTS.color,
+                    font: { size: 10 },
+                    boxWidth: 10,
+                    padding: 10,
+                    usePointStyle: true,
+                  },
+                },
+                tooltip: {
+                  backgroundColor: CHART_DEFAULTS.tooltipBg,
+                  borderColor: "rgba(255,255,255,0.1)",
+                  borderWidth: 1,
+                  padding: 10,
+                  callbacks: {
+                    label: function (c) {
+                      return " " + c.label + ": " + c.parsed.toFixed(2) + "%";
+                    },
+                  },
+                },
+              },
+            },
+          });
+        }
+
+        /* ── LINE CHART (Recent Predictions from history) ── */
+        var lineCtx = document.getElementById("lineChart");
+        if (lineCtx) {
+          var historyItems = md.history || [];
+
+          /* history already includes current prediction stored by Flask session.
+             If empty, seed with current prediction only. */
+          var lineLabels = [];
+          var lineData = [];
+          var lineColors = [];
+
+          var colorMap2 = {
+            high: "rgba(16,185,129,1)",
+            medium: "rgba(245,158,11,1)",
+            low: "rgba(239,68,68,1)",
+          };
+
+          if (historyItems.length === 0) {
+            /* Only current prediction available */
+            lineLabels.push(
+              (md.breed || "Unknown")
+                .replace(" cattle", "")
+                .replace(" Cattle", ""),
+            );
+            lineData.push(parseFloat(md.top_confidence) || 0);
+            lineColors.push(colorMap2[md.top_color] || "rgba(0,242,254,1)");
+          } else {
+            for (var i = 0; i < historyItems.length; i++) {
+              var h = historyItems[i];
+              lineLabels.push(
+                "#" +
+                  (i + 1) +
+                  " " +
+                  (h.breed || "Unknown")
+                    .replace(" cattle", "")
+                    .replace(" Cattle", ""),
+              );
+              lineData.push(parseFloat(h.confidence) || 0);
+              lineColors.push(colorMap2[h.color] || "rgba(0,242,254,1)");
+            }
+          }
+
+          new Chart(lineCtx, {
+            type: "line",
+            data: {
+              labels: lineLabels,
+              datasets: [
+                {
+                  label: "Confidence (%)",
+                  data: lineData,
+                  borderColor: "rgba(0,242,254,0.7)",
+                  backgroundColor: "rgba(0,242,254,0.06)",
+                  pointBackgroundColor: lineColors,
+                  pointBorderColor: "rgba(255,255,255,0.2)",
+                  pointRadius: 6,
+                  pointHoverRadius: 8,
+                  borderWidth: 2,
+                  fill: true,
+                  tension: 0.35,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: { duration: 900, easing: "easeOutQuart" },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: CHART_DEFAULTS.tooltipBg,
+                  borderColor: "rgba(255,255,255,0.1)",
+                  borderWidth: 1,
+                  padding: 12,
+                  callbacks: {
+                    title: function (items) {
+                      return lineLabels[items[0].dataIndex] || "";
+                    },
+                    label: function (c) {
+                      return " Confidence: " + c.parsed.y.toFixed(2) + "%";
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  ticks: {
+                    color: CHART_DEFAULTS.color,
+                    font: { size: 10 },
+                    maxRotation: 25,
+                  },
+                  grid: { color: CHART_DEFAULTS.gridColor },
+                },
+                y: {
+                  min: 0,
+                  max: 100,
+                  ticks: {
+                    color: CHART_DEFAULTS.color,
+                    font: { size: 11 },
+                    callback: function (v) {
+                      return v + "%";
+                    },
+                  },
+                  grid: { color: CHART_DEFAULTS.gridColor },
+                },
+              },
+            },
+          });
+        }
+      }
+    </script>
   </body>
 </html>
