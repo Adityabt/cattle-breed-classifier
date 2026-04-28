@@ -14,11 +14,12 @@ experiments/
 # ───── Model Outputs ─────
 outputs/
 *.pth
+!webapp/model/agpn_model.pth
 
-# ───── Generated Images (IMPORTANT) ─────
+# ───── Generated Images ─────
 webapp/static/uploads/
 webapp/static/heatmaps/
 
-# ───── Optional (good practice) ─────
+# ───── Optional ─────
 .env
 *.log
