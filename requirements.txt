@@ -1,7 +1,11 @@
 Flask==3.0.3
-torch==2.9.0
-torchvision==0.24.0
-numpy==2.0.2
-Pillow==10.3.0
-opencv-python-headless==4.13.0.92
-gdown==5.2.0
+
+torch
+torchvision
+
+numpy
+Pillow
+
+opencv-python-headless
+
+gdown
