@@ -37,7 +37,7 @@ HISTORY_MAX         = 5
 
 UPLOAD_FOLDER  = os.path.join(os.path.dirname(__file__), "static", "uploads")
 HEATMAP_FOLDER = os.path.join(os.path.dirname(__file__), "static", "heatmaps")
-MODEL_PATH     = os.path.join(BASE_DIR, "outputs", "agpn_model.pth")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "model", "agpn_model.pth")
 CLASS_FILE     = os.path.join(BASE_DIR, "class_names.json")
 
 DEFAULT_CLASSES = [
@@ -47,6 +47,9 @@ DEFAULT_CLASSES = [
     "Jersey cattle",
     "Red Dane cattle",
 ]
+
+UPLOAD_FOLDER = "/tmp/uploads"
+HEATMAP_FOLDER = "/tmp/heatmaps"
 
 os.makedirs(UPLOAD_FOLDER,  exist_ok=True)
 os.makedirs(HEATMAP_FOLDER, exist_ok=True)
