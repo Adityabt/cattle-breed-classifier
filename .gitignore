@@ -14,7 +14,9 @@ experiments/
 # ───── Model Outputs ─────
 outputs/
 *.pth
-!webapp/model/agpn_model.pth
+
+# 🚀 IMPORTANT: Ignore downloaded model
+webapp/model/
 
 # ───── Generated Images ─────
 webapp/static/uploads/
