@@ -59,7 +59,7 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_BYTES
 # ─────────────────────────────────────────────
 # DEVICE
 # ─────────────────────────────────────────────
-device = torch.device("cpu" if torch.backends.mps.is_available() else "cpu")
+device = torch.device("cpu")
 print(f"[App] Device: {device}")
 
 # ─────────────────────────────────────────────
