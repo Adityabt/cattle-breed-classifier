@@ -48,8 +48,8 @@ DEFAULT_CLASSES = [
     "Red Dane cattle",
 ]
 
-UPLOAD_FOLDER = "/tmp/uploads"
-HEATMAP_FOLDER = "/tmp/heatmaps"
+UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads")
+HEATMAP_FOLDER = os.path.join(app.root_path, "static", "heatmaps")
 
 os.makedirs(UPLOAD_FOLDER,  exist_ok=True)
 os.makedirs(HEATMAP_FOLDER, exist_ok=True)
