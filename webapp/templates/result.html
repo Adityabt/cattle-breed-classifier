@@ -586,13 +586,9 @@
             </button>
           </div>
           <div class="image-wrapper">
+            <img src="{{ image_path }}" id="main-image" class="full-img" />
             <img
-              src="{{ url_for('static', filename=image_path) }}"
-              id="main-image"
-              class="full-img"
-            />
-            <img
-              src="{{ url_for('static', filename=heatmap_path) }}"
+              src="{{ heatmap_path }}"
               id="heatmap-image"
               class="full-img overlay-img"
             />
