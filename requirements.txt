@@ -1,13 +1,7 @@
 Flask==3.0.3
-gunicorn==23.0.0
-
-torch==2.0.1
-torchvision==0.15.2
-
-numpy==1.26.4
+torch==2.9.0
+torchvision==0.24.0
+numpy==2.0.2
 Pillow==10.3.0
-
-opencv-python-headless==4.9.0.80
-
+opencv-python-headless==4.13.0.92
 gdown==5.2.0
-requests==2.31.0
